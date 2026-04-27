@@ -1,0 +1,28 @@
+name = "link-shortner"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[routes]]
+pattern = "your-domain.com"
+custom_domain = true
+
+[[kv_namespaces]]
+binding = "LINKS"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+preview_id = "REPLACE_WITH_YOUR_KV_NAMESPACE_PREVIEW_ID"
+
+# Secrets (set via `wrangler secret put ADMIN_PASSWORD`)
+# ADMIN_PASSWORD — used for both web login and Bearer token
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = false
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[vars]
+SITE_DOMAIN = "lnc.sh"

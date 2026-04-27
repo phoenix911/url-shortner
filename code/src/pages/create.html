@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cf-link — shorten a URL</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f11;
+      --surface: #1a1a1f;
+      --border: #2e2e38;
+      --accent: #7c6af7;
+      --accent-hover: #9585fa;
+      --text: #e8e8f0;
+      --muted: #888899;
+      --error: #f47373;
+      --success: #50c878;
+      --radius: 10px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .logo-text { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.01em; }
+    .logo-sub { font-size: 0.75rem; color: var(--muted); }
+
+    h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .subtitle { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.75rem; }
+
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input[type="text"], input[type="password"], input[type="number"], input[type="url"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.9375rem;
+      padding: 0.7rem 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: var(--font);
+    }
+
+    input:focus { border-color: var(--accent); }
+    input.error { border-color: var(--error); }
+
+    .field { margin-bottom: 1.1rem; }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+
+    .err-msg {
+      font-size: 0.8rem;
+      color: var(--error);
+      margin-top: 0.35rem;
+      display: none;
+    }
+
+    .err-msg.visible { display: block; }
+
+    button[type="submit"] {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      padding: 0.75rem;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      margin-top: 0.5rem;
+      font-family: var(--font);
+    }
+
+    button[type="submit"]:hover { background: var(--accent-hover); }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .success-box {
+      display: none;
+      background: rgba(80, 200, 120, 0.08);
+      border: 1px solid rgba(80, 200, 120, 0.3);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      margin-top: 1.25rem;
+    }
+
+    .success-box.visible { display: block; }
+
+    .success-label {
+      font-size: 0.75rem;
+      color: var(--success);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .short-url-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .short-url {
+      flex: 1;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      background: var(--border);
+      color: var(--text);
+      border: none;
+      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: #3a3a48; }
+
+    .success-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    .global-err {
+      background: rgba(244, 115, 115, 0.08);
+      border: 1px solid rgba(244, 115, 115, 0.3);
+      border-radius: var(--radius);
+      color: var(--error);
+      font-size: 0.875rem;
+      padding: 0.75rem 0.9rem;
+      margin-bottom: 1.1rem;
+      display: none;
+    }
+
+    .global-err.visible { display: block; }
+
+    .another-btn {
+      width: 100%;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      padding: 0.6rem;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      font-family: var(--font);
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .another-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    /* login form */
+    #login-section { display: none; }
+    #create-section { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">cf-link</div>
+        <div class="logo-sub">your-domain.com</div>
+      </div>
+    </div>
+
+    <!-- LOGIN SECTION -->
+    <div id="login-section">
+      <h1>Sign in</h1>
+      <p class="subtitle">Enter the admin password to create short links.</p>
+
+      <div id="login-err" class="global-err"></div>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" id="login-btn">Sign in</button>
+      </form>
+    </div>
+
+    <!-- CREATE SECTION -->
+    <div id="create-section">
+      <h1>Shorten a URL</h1>
+      <p class="subtitle">Paste a long link and get a short one at your-domain.com</p>
+
+      <div id="global-err" class="global-err"></div>
+
+      <form id="create-form" novalidate>
+        <div class="field">
+          <label for="url">Long URL <span style="color:var(--error)">*</span></label>
+          <input type="url" id="url" name="url" placeholder="https://example.com/your/long/link" required />
+          <div class="err-msg" id="url-err"></div>
+        </div>
+
+        <div class="field">
+          <label for="code">Custom short code</label>
+          <input type="text" id="code" name="code" placeholder="leave blank for auto (e.g. xk92mP)" autocomplete="off" />
+          <div class="hint">Min 4 chars · letters, numbers, hyphens, underscores</div>
+          <div class="err-msg" id="code-err"></div>
+        </div>
+
+        <div class="field">
+          <label for="ttlDays">Expires in (days)</label>
+          <input type="number" id="ttlDays" name="ttlDays" value="365" min="0" max="3650" />
+          <div class="hint">0 = never expire · max 3650 days</div>
+          <div class="err-msg" id="ttl-err"></div>
+        </div>
+
+        <button type="submit" id="submit-btn">Shorten URL</button>
+      </form>
+
+      <div class="success-box" id="success-box">
+        <div class="success-label">✓ Link created</div>
+        <div class="short-url-row">
+          <div class="short-url" id="short-url-text"></div>
+          <button class="copy-btn" id="copy-btn" type="button">Copy</button>
+        </div>
+        <div class="success-meta" id="success-meta"></div>
+        <button class="another-btn" id="another-btn" type="button">Shorten another URL</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const showLogin = params.get('login') === '1';
+
+      const loginSection = document.getElementById('login-section');
+      const createSection = document.getElementById('create-section');
+
+      function showSection(section) {
+        loginSection.style.display = section === 'login' ? 'block' : 'none';
+        createSection.style.display = section === 'create' ? 'block' : 'none';
+      }
+
+      showSection(showLogin ? 'login' : 'create');
+
+      // ── LOGIN ──
+      const loginForm = document.getElementById('login-form');
+      const loginBtn = document.getElementById('login-btn');
+      const loginErr = document.getElementById('login-err');
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Signing in…';
+        loginErr.classList.remove('visible');
+
+        const fd = new FormData(loginForm);
+        try {
+          const res = await fetch('/api/login', { method: 'POST', body: fd });
+          if (res.ok) {
+            history.replaceState({}, '', '/create');
+            showSection('create');
+          } else {
+            const data = await res.json();
+            loginErr.textContent = data.error || 'Invalid password.';
+            loginErr.classList.add('visible');
+          }
+        } catch {
+          loginErr.textContent = 'Network error. Please try again.';
+          loginErr.classList.add('visible');
+        } finally {
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Sign in';
+        }
+      });
+
+      // ── CREATE ──
+      const createForm = document.getElementById('create-form');
+      const submitBtn = document.getElementById('submit-btn');
+      const globalErr = document.getElementById('global-err');
+      const successBox = document.getElementById('success-box');
+      const shortUrlText = document.getElementById('short-url-text');
+      const successMeta = document.getElementById('success-meta');
+      const copyBtn = document.getElementById('copy-btn');
+      const anotherBtn = document.getElementById('another-btn');
+
+      function clearErrors() {
+        globalErr.classList.remove('visible');
+        document.querySelectorAll('.err-msg').forEach(el => el.classList.remove('visible'));
+        document.querySelectorAll('input').forEach(el => el.classList.remove('error'));
+      }
+
+      function showFieldErr(id, msg) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.classList.add('visible');
+        el.previousElementSibling?.classList?.add('error');
+      }
+
+      createForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearErrors();
+        successBox.classList.remove('visible');
+
+        const url = document.getElementById('url').value.trim();
+        const code = document.getElementById('code').value.trim();
+        const ttlDays = document.getElementById('ttlDays').value.trim();
+
+        let hasError = false;
+
+        if (!url) {
+          showFieldErr('url-err', 'URL is required.');
+          hasError = true;
+        } else {
+          try {
+            const u = new URL(url);
+            if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+              showFieldErr('url-err', 'URL must start with http:// or https://');
+              hasError = true;
+            }
+          } catch {
+            showFieldErr('url-err', 'Please enter a valid URL.');
+            hasError = true;
+          }
+        }
+
+        if (code && code.length < 4) {
+          showFieldErr('code-err', 'Short code must be at least 4 characters.');
+          hasError = true;
+        }
+
+        if (hasError) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating…';
+
+        const fd = new FormData(createForm);
+        try {
+          const res = await fetch('/api/shorten', { method: 'POST', body: fd });
+          const data = await res.json();
+
+          if (res.ok) {
+            shortUrlText.textContent = data.shortUrl;
+            const expiry = data.expiresAt
+              ? `Expires ${new Date(data.expiresAt).toLocaleDateString()}`
+              : 'Never expires';
+            successMeta.textContent = `→ ${data.url.length > 60 ? data.url.slice(0, 60) + '…' : data.url}  ·  ${expiry}`;
+            successBox.classList.add('visible');
+            createForm.reset();
+            document.getElementById('ttlDays').value = '365';
+          } else if (res.status === 401) {
+            showSection('login');
+            history.replaceState({}, '', '/create?login=1');
+          } else {
+            const field = data.error?.toLowerCase().includes('url') ? 'url-err'
+              : data.error?.toLowerCase().includes('code') || data.error?.toLowerCase().includes('short') ? 'code-err'
+              : null;
+            if (field) {
+              showFieldErr(field, data.error);
+            } else {
+              globalErr.textContent = data.error || 'Something went wrong.';
+              globalErr.classList.add('visible');
+            }
+          }
+        } catch {
+          globalErr.textContent = 'Network error. Please try again.';
+          globalErr.classList.add('visible');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Shorten URL';
+        }
+      });
+
+      copyBtn.addEventListener('click', async () => {
+        const text = shortUrlText.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+        } catch {
+          copyBtn.textContent = 'Copy';
+        }
+      });
+
+      anotherBtn.addEventListener('click', () => {
+        successBox.classList.remove('visible');
+        clearErrors();
+        document.getElementById('url').focus();
+      });
+    })();
+  </script>
+</body>
+</html>

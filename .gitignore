@@ -1,0 +1,18 @@
+# env secrets — never commit
+.env
+
+# setup progress state
+.setup-state
+
+# Cloudflare / Wrangler
+code/node_modules/
+code/.wrangler/
+.wrangler/
+code/dist/
+code/worker-configuration.d.ts
+code/wrangler.toml
+
+# OS
+.DS_Store
+.what_i_need
+prompt.md
