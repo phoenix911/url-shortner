@@ -135,10 +135,23 @@ Tech choices explained → **[tech.md](tech.md)**
 make setup              # interactive setup wizard (resumes automatically)
 make dev                # local dev server at localhost:8787
 make deploy             # deploy to Cloudflare
+make test               # run end-to-end test suite against deployed worker
 make commit MSG="..."   # stage, commit, push
 make create URL=...     # create a short link via API
 make create-interactive # interactive prompt for URL / code / TTL
 ```
+
+---
+
+## Testing
+
+`scripts/test.sh` runs 32 end-to-end tests against your live worker — routing, auth, link creation, redirects, caching, and error cases.
+
+```bash
+make test
+```
+
+Requires `.env` with `ADMIN_PASSWORD` and `SITE_DOMAIN` set. The suite creates a few test links with random slugs and cleans nothing up (they expire in 1–7 days anyway).
 
 ---
 

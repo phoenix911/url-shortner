@@ -1,4 +1,4 @@
-.PHONY: setup commit deploy dev create create-interactive
+.PHONY: setup commit deploy dev create create-interactive test
 
 # Interactive setup wizard — resumes from where you left off
 setup:
@@ -36,6 +36,10 @@ endif
 #   make create URL=https://example.com CODE=myslug TTL=30
 create:
 	@bash curl/create.sh "$(URL)" "$(CODE)" "$(TTL)"
+
+# Run the end-to-end test suite against the deployed worker
+test:
+	@bash scripts/test.sh
 
 # Interactive create — prompts for URL, code, TTL
 create-interactive:
