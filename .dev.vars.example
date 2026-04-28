@@ -1,0 +1,6 @@
+ADMIN_PASSWORD=replace-with-a-strong-random-password
+
+# Analytics (optional — enables stats on /dashboard)
+# CF_ZONE_ID=your-zone-id            (find on right sidebar of dash.cloudflare.com → your domain)
+# CF_API_TOKEN=your-api-token        (needs Zone Analytics Read + Analytics Engine Read permissions)
+# CF_ACCOUNT_ID=your-account-id      (only needed without CF_ZONE_ID, for Analytics Engine fallback)

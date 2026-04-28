@@ -1,0 +1,29 @@
+name = "cf-link"
+main = "code/src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "LINKS"
+id = "4e76043961194266819b053c296e0ae2"
+preview_id = "4e76043961194266819b053c296e0ae2"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "analytics_events"
+
+# Secrets for analytics queries (set via wrangler secret put):
+#   wrangler secret put CF_ACCOUNT_ID
+#   wrangler secret put CF_API_TOKEN   (needs Analytics Engine Read permission)
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = false
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[vars]
+SITE_DOMAIN = "your-domain.com"

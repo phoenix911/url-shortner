@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cf-link — dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f11;
+      --surface: #1a1a1f;
+      --surface2: #141418;
+      --border: #2e2e38;
+      --accent: #7c6af7;
+      --accent-dim: rgba(124,106,247,0.12);
+      --text: #e8e8f0;
+      --muted: #888899;
+      --error: #f47373;
+      --success: #50c878;
+      --radius: 10px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --nav-h: 56px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f5f8;
+      --surface: #ffffff;
+      --surface2: #f0f0f5;
+      --border: #e2e2ec;
+      --text: #1a1a2e;
+      --muted: #6b6b80;
+      --accent-dim: rgba(124,106,247,0.08);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: var(--nav-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+      gap: 1.5rem;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .nav-logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+      color: #fff;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .nav-link:hover { color: var(--text); background: var(--border); }
+    .nav-link.active { color: var(--text); background: var(--accent-dim); }
+
+    .theme-btn {
+      margin-left: auto;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.8125rem;
+      font-family: var(--font);
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .theme-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    /* ── PAGE ── */
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .page-title { font-size: 1.25rem; font-weight: 600; }
+    .page-count {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      background: var(--border);
+      padding: 0.15rem 0.6rem;
+      border-radius: 99px;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    thead th {
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.7rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr.link-row {
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    tbody tr.link-row:last-of-type { border-bottom: none; }
+    tbody tr.link-row:hover { background: var(--accent-dim); }
+    tbody tr.link-row.active { background: var(--accent-dim); }
+
+    tbody td {
+      padding: 0.75rem 1rem;
+      vertical-align: middle;
+    }
+
+    .code-cell {
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-size: 0.8125rem;
+      white-space: nowrap;
+    }
+
+    .code-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .code-link:hover { text-decoration: underline; }
+
+    .url-cell {
+      color: var(--muted);
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .date-cell { color: var(--muted); white-space: nowrap; font-size: 0.8125rem; }
+
+    .expire-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      background: var(--border);
+      color: var(--muted);
+    }
+
+    .expire-badge.never { background: rgba(80,200,120,0.1); color: var(--success); }
+
+    /* ── STATS ROW ── */
+    tr.stats-row td {
+      padding: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stats-panel {
+      padding: 1.25rem 1.25rem 1.25rem 1rem;
+      border-left: 3px solid var(--accent);
+      background: var(--surface2);
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .stats-total-block { min-width: 120px; }
+
+    .stats-total-num {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--accent);
+    }
+
+    .stats-total-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .stats-note {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.6rem;
+      max-width: 200px;
+      line-height: 1.4;
+      opacity: 0.7;
+    }
+
+    .stats-countries { flex: 1; min-width: 240px; }
+
+    .countries-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 1.6rem 2.5rem 1fr 5rem;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .flag { font-size: 1rem; }
+    .country-code { font-size: 0.8125rem; color: var(--muted); font-family: ui-monospace, monospace; }
+
+    .bar-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    .bar-label { font-size: 0.75rem; color: var(--muted); text-align: right; }
+
+    .stats-loading {
+      padding: 1rem 1.25rem;
+      color: var(--muted);
+      font-size: 0.875rem;
+      border-left: 3px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .stats-error {
+      padding: 1rem 1.25rem;
+      color: var(--error);
+      font-size: 0.875rem;
+      border-left: 3px solid var(--error);
+      background: rgba(244,115,115,0.05);
+    }
+
+    .no-data { color: var(--muted); font-size: 0.875rem; font-style: italic; }
+
+    /* ── EMPTY / LOADING ── */
+    .state-box {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+      font-size: 0.9375rem;
+    }
+
+    .state-box a { color: var(--accent); }
+
+    .err-box {
+      background: rgba(244,115,115,0.08);
+      border: 1px solid rgba(244,115,115,0.3);
+      border-radius: var(--radius);
+      color: var(--error);
+      padding: 1rem;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="/create" class="nav-logo">
+      <div class="nav-logo-icon">&#9889;</div>
+      cf-link
+    </a>
+    <div class="nav-links">
+      <a href="/create" class="nav-link">Create</a>
+      <a href="/dashboard" class="nav-link active">Dashboard</a>
+    </div>
+    <button class="theme-btn" id="theme-btn">Light</button>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1 class="page-title">Links</h1>
+      <span class="page-count" id="link-count" style="display:none"></span>
+    </div>
+
+    <div id="state-loading" class="state-box">Loading links&hellip;</div>
+    <div id="state-error" class="err-box" style="display:none"></div>
+
+    <div class="table-wrap" id="table-wrap" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Destination</th>
+            <th>Created</th>
+            <th>Expires</th>
+          </tr>
+        </thead>
+        <tbody id="links-body"></tbody>
+      </table>
+    </div>
+
+    <div id="state-empty" class="state-box" style="display:none">
+      No links yet. <a href="/create">Create your first one.</a>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    // ── THEME ──
+    const THEME_KEY = 'cf-link-theme'
+    const themeBtn = document.getElementById('theme-btn')
+
+    function applyTheme(t) {
+      document.documentElement.dataset.theme = t
+      themeBtn.textContent = t === 'dark' ? 'Light' : 'Dark'
+    }
+
+    applyTheme(localStorage.getItem(THEME_KEY) || 'dark')
+
+    themeBtn.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
+      localStorage.setItem(THEME_KEY, next)
+      applyTheme(next)
+    })
+
+    // ── UTILS ──
+    function flag(code) {
+      if (!code || code === 'XX' || code.length !== 2) return '🌍'
+      const c = code.toUpperCase()
+      return String.fromCodePoint(
+        0x1F1E0 + c.charCodeAt(0) - 65,
+        0x1F1E0 + c.charCodeAt(1) - 65
+      )
+    }
+
+    function fmtDate(iso) {
+      return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    }
+
+    function truncate(s, n) {
+      return s.length > n ? s.slice(0, n) + '…' : s
+    }
+
+    // ── LOAD LINKS ──
+    async function load() {
+      try {
+        const res = await fetch('/api/links')
+        if (res.status === 401) { location.href = '/create?login=1'; return }
+        if (!res.ok) throw new Error('Failed to fetch links')
+        const { links } = await res.json()
+        render(links)
+      } catch (e) {
+        document.getElementById('state-loading').style.display = 'none'
+        const el = document.getElementById('state-error')
+        el.textContent = e.message || 'Could not load links.'
+        el.style.display = 'block'
+      }
+    }
+
+    function render(links) {
+      document.getElementById('state-loading').style.display = 'none'
+
+      if (!links || links.length === 0) {
+        document.getElementById('state-empty').style.display = 'block'
+        return
+      }
+
+      const countEl = document.getElementById('link-count')
+      countEl.textContent = links.length + ' link' + (links.length !== 1 ? 's' : '')
+      countEl.style.display = 'inline'
+
+      links.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+      const tbody = document.getElementById('links-body')
+      links.forEach(link => {
+        const tr = document.createElement('tr')
+        tr.className = 'link-row'
+        tr.dataset.code = link.code
+
+        const expBadge = link.expiresAt
+          ? `<span class="expire-badge">${fmtDate(link.expiresAt)}</span>`
+          : `<span class="expire-badge never">Never</span>`
+
+        tr.innerHTML = `
+          <td class="code-cell"><a class="code-link" href="/${link.code}" target="_blank" onclick="event.stopPropagation()">/${link.code}</a></td>
+          <td class="url-cell" title="${link.url}">${truncate(link.url, 55)}</td>
+          <td class="date-cell">${fmtDate(link.createdAt)}</td>
+          <td>${expBadge}</td>
+        `
+        tr.addEventListener('click', () => toggleStats(tr, link.code))
+        tbody.appendChild(tr)
+      })
+
+      document.getElementById('table-wrap').style.display = 'block'
+    }
+
+    // ── STATS ──
+    let activeCode = null
+
+    function toggleStats(tr, code) {
+      const existing = document.querySelector('.stats-row')
+      if (existing) {
+        existing.remove()
+        tr.classList.remove('active')
+        if (activeCode === code) { activeCode = null; return }
+      }
+      document.querySelectorAll('.link-row').forEach(r => r.classList.remove('active'))
+
+      activeCode = code
+      tr.classList.add('active')
+
+      const statsRow = document.createElement('tr')
+      statsRow.className = 'stats-row'
+      statsRow.innerHTML = `<td colspan="4"><div class="stats-loading">Loading analytics&hellip;</div></td>`
+      tr.after(statsRow)
+
+      fetch('/api/links/' + code + '/stats')
+        .then(r => r.json())
+        .then(data => renderStats(statsRow.querySelector('td'), data))
+        .catch(() => {
+          statsRow.querySelector('td').innerHTML = `<div class="stats-error">Could not load analytics.</div>`
+        })
+    }
+
+    function renderStats(td, data) {
+      if (data.error) {
+        td.innerHTML = `<div class="stats-error">${data.error}</div>`
+        return
+      }
+
+      const countriesHtml = data.countries && data.countries.length > 0
+        ? data.countries.map(c => `
+            <div class="bar-row" title="${c.name || c.country}">
+              <span class="flag">${flag(c.country)}</span>
+              <span class="country-code">${c.country}</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${c.pct}%"></div></div>
+              <span class="bar-label">${c.clicks.toLocaleString()} (${c.pct}%)</span>
+            </div>
+          `).join('')
+        : `<p class="no-data">No data yet &mdash; clicks will appear here after first visits.</p>`
+
+      td.innerHTML = `
+        <div class="stats-panel">
+          <div class="stats-total-block">
+            <div class="stats-total-num">${data.total.toLocaleString()}</div>
+            <div class="stats-total-label">${data.source === 'zone' ? 'total hits (incl. CDN cache)' : 'worker invocations only'}</div>
+            <p class="stats-note">${data.source === 'zone' ? 'Last 24 hours — all traffic including CDN-cached hits.' : 'CDN-cached hits bypass the Worker and are not counted. Set CF_ZONE_ID for real counts.'}</p>
+          </div>
+          <div class="stats-countries">
+            <div class="countries-title">By country</div>
+            ${countriesHtml}
+          </div>
+        </div>
+      `
+    }
+
+    load()
+  })()
+  </script>
+</body>
+</html>
